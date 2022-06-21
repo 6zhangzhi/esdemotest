@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- 引入bootstrap的css文件 -->
+    <link rel="stylesheet" th:href="@{/js/bootstrap/bootstrap3/css/bootstrap.css}">
+    <link rel="stylesheet" th:href="@{/js/bootstrap/bootstrap3/css/bootstrap-theme.css}">
+    <!-- 引入jquery的js文件 -->
+    <script type="text/javascript" th:src="@{/js/jquery.min.js}"></script>
+    <!-- 引入bootstrap的js -->
+    <script type="text/javascript" th:src="@{/js/bootstrap/bootstrap3/js/bootstrap.js}"></script>
+    <!-- 引入table的css、js文件 -->
+    <link rel="stylesheet" th:href="@{/js/bootstrap/bootstrap-table/bootstrap-table.css}">
+    <script type="text/javascript" th:src="@{/js/bootstrap/bootstrap-table/bootstrap-table.js}"></script>
+    <script type="text/javascript" th:src="@{/js/bootstrap/bootstrap-table/locale/bootstrap-table-zh-CN.js}"></script>
+    <!-- 引入date的css和js文件 -->
+    <link rel="stylesheet" th:href="@{/js/bootstrap/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css}">
+    <script type="text/javascript" th:src="@{/js/bootstrap/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js}"></script>
+    <script type="text/javascript" th:src="@{/js/bootstrap/bootstrap-datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js}"></script>
+    <!-- 引入bootbox的js文件 -->
+    <script type="text/javascript" th:src="@{/js/bootstrap/bootstrap-bootbox/bootbox.js}"></script>
+    <!-- 引入fileinput的css和js文件 -->
+    <link rel="stylesheet" th:href="@{/js/bootstrap/bootstrap-fileinput/css/fileinput.css}">
+    <script type="text/javascript" th:src="@{/js/bootstrap/bootstrap-fileinput/js/fileinput.js}"></script>
+    <script type="text/javascript" th:src="@{/js/bootstrap/bootstrap-fileinput/js/locales/zh.js}"></script>
+</head>
+<body>
+    <div id="toolbar">
+        <form class="form-inline">
+            <div class="form-group">
+                <label for="goodName">商品名称或详情</label>
+                <input type="text" class="form-control" id="goodName" placeholder="商品名称或详情">
+            </div>
+
+            <div class="form-group">
+                <label>上架时间</label>
+                <input type="date" class="form-control" id="mindate">--
+                <input type="date" class="form-control" id="maxdate">
+            </div>
+
+            <button type="button" class="btn btn-primary glyphicon glyphicon-search" onclick="search()">搜索</button>
+        </form>
+        <button type="button" onclick="openAdd()" class="btn btn-default success">新增</button>
+    </div>
+    <table class="table" id="mytable"></table>
+
+</body>
+<script>
+    $(function(){
+        initTable();//初始化加载表格
+    })
+    //条查
+    function search(){
+        $('#mytable').bootstrapTable("refresh");
+    }
+    function openAdd(){
+        bootbox.dialog({
+            title:'新增信息',
+            message: createAddContent("/page/add"),
+            closeButton: true,
+            buttons : {
+                success : {
+                    label : "<i class='icon-ok'></i> 保存",
+                    className : "btn-sm btn-success",
+                    callback : function() {//成功回调的函数
+                        $.ajax({
+                            url:'/good/',
+                            data:$("#goodForm").serialize(),
+                            type:"post",
+                            success:function(){
+                                $('#mytable').bootstrapTable('refresh');
+                            }
+                        });
+                    }
+                },
+                cancel : {
+                    label : "<i class='icon-info'></i> 取消",
+                    className : "btn-sm btn-danger",
+                }
+            }
+        })
+        initImg();
+    }
+    var res;
+    function createAddContent(url){
+        $.ajax({
+            url:url,
+            async:false,//同步
+            success:function(data){
+                res = data;
+            }
+        });
+        return res;
+    }
+    //分页查询商品信息
+    function initTable(){
+        $('#mytable').bootstrapTable({
+            toolbar:'#toolbar',
+            url:'/good/',//获取数据地址
+            pagination:true, //是否展示分页
+            pageList:[2, 4, 6, 50],//分页组件
+            pageNumber:1,
+            pageSize:2,//默认每页条数
+            sidePagination:'server',//分页方式：client客户端分页，server服务端分页（*
+            striped:true,//斑马线
+            method:"get",
+            queryParams:function(){
+                return {
+                    page: this.pageNumber,
+                    rows: this.pageSize,
+                    goodName :$("#goodName").val(),
+                    mindate : $("#mindate").val(),
+                    maxdate: $("#maxdate").val()
+                };
+            },
+            columns:[
+                {field:'ck',checkbox:true},
+                {field:'goodId',title:'ID',align:'center',width:150},
+                {field:'goodName',title:'商品名称',align:'center',width:150},
+                {field:'gooddate',title:'上架时间',width:150},
+                {field:'goodPrice',title:'商品价格',width:150},
+                {field:'goodCount',title:'商品数量',width:150},
+                {field:'detail',title:'详情',width:150},
+                {field:'goodimg',title:'商品图片',width:150,formatter:function(value,row,index){
+                        return "<img style='width:60px;height:35px;' class='img-thumbnail' src="+value+"/>";
+                    }},
+                {field:'hand',title:'操作',formatter:function(value,row,index){
+                        var str = "<button class='btn btn-default' type='button' onclick='deleteGood(\""+row.goodId+"\")'>删除</button>";
+                        str += "<button class='btn btn-default' type='button' onclick='geteGoodById(\""+row.goodId+"\")'>修改</button>";
+                        return str;
+                }}
+            ]
+        });
+    }
+    //删除
+    function deleteGood(id) {
+        $.ajax({
+            url:'/good/'+id,
+            data:{_method:"DELETE", ids:id},
+            type:"post",
+            success:function(){
+                $('#mytable').bootstrapTable('refresh');
+            }
+        });
+    }
+    //加载图片
+    function initImg(url){
+        $('#goodsImg').fileinput({
+            initialPreview:url,
+            //初始化图片配置：
+            initialPreviewConfig: [
+                {key: 1, showDelete: false}
+            ],
+            //是否初始化图片显示
+            initialPreviewAsData: true,
+            language: 'zh', //设置语言
+            uploadUrl: '/good/uploadImg', //上传的地址
+            allowedFileExtensions: ['jpg', 'gif', 'png'],//接收的文件后缀
+            showUpload: true, //是否显示上传按钮
+            showCaption: false,//是否显示标题
+            browseClass: "btn btn-primary", //按钮样式
+            maxFileCount: 2, //表示允许同时上传的最大文件个数
+            enctype: 'multipart/form-data',
+            validateInitialCount:true,
+            previewFileIcon: "<i class='glyphicon glyphicon-king'></i>",
+            msgFilesTooMany: "选择上传的文件数量({n}) 超过允许的最大数值{m}！",
+
+        }).on('fileuploaded', function(event, data, previewId, index) {
+            // /upload/11.jpg
+            $('#testimg').val(data.response);
+        });
+    }
+    //修改回显
+    function geteGoodById(id) {
+        bootbox.dialog({
+            title:'修改信息',
+            message: createAddContent("/page/add"),
+            closeButton: true,
+            buttons : {
+                success : {
+                    label : "<i class='icon-ok'></i> 保存",
+                    className : "btn-sm btn-success",
+                    callback : function() {//成功回调的函数
+                        $.ajax({
+                            url:'/good/',
+                            data:$("#goodForm").serialize(),
+                            type:"post",
+                            success:function(){
+                                $('#mytable').bootstrapTable('refresh');
+                            }
+                        });
+                    }
+                },
+                cancel : {
+                    label : "<i class='icon-info'></i> 取消",
+                    className : "btn-sm btn-danger",
+                }
+            }
+        })
+        //回显
+        $.ajax({
+            url:"/good/"+id,
+            type:"get",
+            async:false,//同步
+            success:function(data){
+                initImg(data.goodimg);
+                for(var i in data){
+                    $("#goodForm input").each(function(index,dom){
+                        if(i==$(dom).attr("name")){
+                            $(dom).val(data[i]);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+</script>
+</html>

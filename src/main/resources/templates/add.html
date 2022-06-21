@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form id="goodForm" class="form-horizontal">
+        <input type="hidden" name="goodId">
+        <div class="form-group">
+            <label class="col-md-2 control-label">商品名称</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" name="goodName">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">商品价格</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" name="goodPrice">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">商品数量</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" name="goodCount">
+            </div>
+        </div>
+       <div class="form-group">
+            <label class="col-md-2 control-label">详情</label>
+            <div class="col-md-8">
+                <input type="text" class="form-control" name="detail">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">上架日期</label>
+            <div class="col-md-8">
+                <input type="date" class="form-control" id="" name="gooddate">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-2"><label>图片</label></div>
+            <div class="col-md-10">
+                <!-- 隐藏域：往后台提交值 -->
+                <input id="testimg" name="goodimg">
+                <!-- 文件域 -->
+                <input type="file" id="goodsImg" class="projectfile" accept="image/*" name="img" >
+            </div>
+        </div>
+    </form>
+</body>
+</html>
